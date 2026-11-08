@@ -280,6 +280,14 @@ android {
                 signingConfig = signingConfigs.getByName("release")
             }
         }
+        // Distribution target for the community APK: identical to debug for every dependency
+        // and library variant (so the documented stub-binding switches stay legal), but not
+        // debuggable, which is what a downloadable artifact must never be.
+        create("debugDist") {
+            initWith(getByName("debug"))
+            isDebuggable = false
+            matchingFallbacks += listOf("debug")
+        }
         // Test-only installable variant. Some devices already carry a differently-signed
         // com.muyuchat.mca, and replacing it would erase user data. `-PmcaDeviceTestVariant=true`
         // adds a debuggable, debug-signed APK with a distinct applicationId so Room migration and
