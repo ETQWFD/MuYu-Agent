@@ -37,6 +37,21 @@ jobs:
         run: |
           set -e
           rustup target add aarch64-linux-android armv7-linux-androideabi
+          # cargo resolves a target-triple linker from the triple itself, but the NDK ships
+          # the 32-bit ARM driver as armv7a-linux-androideabi<api>-clang. Add the alias the
+          # Rust build system looks for so onig_sys/tokenizers cross-compile for v7a.
+          NDK_BIN="${ANDROID_NDK_LATEST_HOME:-$ANDROID_HOME/ndk/29.0.13113456}/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          ls "$NDK_BIN" > /dev/null
+          for pair in "armv7-linux-androideabi:armv7a-linux-androideabi" ; do
+            want="${pair%%:*}"; have="${pair##*:}"
+            for api in 26 21; do
+              for suffix in clang clang++; do
+                if [ -x "$NDK_BIN/${have}${api}-${suffix}" ] && [ ! -e "$NDK_BIN/${want}${api}-${suffix}" ]; then
+                  ln -s "$NDK_BIN/${have}${api}-${suffix}" "$NDK_BIN/${want}${api}-${suffix}"
+                fi
+              done
+            done
+          done
           cd third_party/tokenizers-cpp/rust
           cargo generate-lockfile
 
