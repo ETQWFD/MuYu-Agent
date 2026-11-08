@@ -33,6 +33,9 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      - name: Patch ggml for the 32-bit ARM toolchain
+        run: python3 scripts/ci-patch-ggml-arm32.py third_party/llama.cpp/ggml/src/ggml-cpu/ggml-cpu-impl.h
+
       - name: Prepare tokenizers-cpp Rust toolchain
         run: |
           set -e
