@@ -22,6 +22,21 @@ set(MCA_QNN_SDK_ROOT "" CACHE PATH "Qualcomm AI Runtime / QNN SDK root")
 set(MCA_TOKENIZERS_CPP_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../../../../third_party/tokenizers-cpp" CACHE PATH "tokenizers-cpp source root")
 set(MCA_OPENCL_HEADERS_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../../../../third_party/MNN/3rd_party/OpenCLHeaders" CACHE PATH "OpenCL headers used by the Android llama.cpp backend")
 
+# The QNN graph layer is only meaningful with the QAIRT/QNN SDK headers: every one of its
+# translation units drives QnnExecutableGraph / QnnInterface_t directly. Detect the SDK once,
+# up front, so the native modules can skip building a layer that could not execute anyway
+# (libmca_qnn_native.so is simply absent and the Kotlin bridge reports QNN as unavailable).
+set(MCA_QNN_INCLUDE_DIR "")
+foreach(QNN_INCLUDE_CANDIDATE
+        "${MCA_QNN_SDK_ROOT}/include"
+        "$ENV{QNN_SDK_ROOT}/include"
+        "$ENV{QAIRT_SDK_ROOT}/include")
+    if(EXISTS "${QNN_INCLUDE_CANDIDATE}/QNN/QnnInterface.h")
+        set(MCA_QNN_INCLUDE_DIR "${QNN_INCLUDE_CANDIDATE}")
+        break()
+    endif()
+endforeach()
+
 # Android exposes the vendor OpenCL implementation as a platform native
 # library.  There is no NDK import library to link against, so the backend is
 # compiled against the Khronos headers and resolves the platform library at
@@ -191,6 +206,7 @@ add_library(mca_prompt_handoff SHARED
 target_compile_definitions(mca_prompt_handoff PRIVATE MCA_PROMPT_HANDOFF_BUILDING=1)
 target_link_libraries(mca_prompt_handoff PRIVATE mca_contract mca_common)
 
+if(MCA_QNN_INCLUDE_DIR)
 add_library(mca_qnn_runtime STATIC
         mca/qnn/qnn_runtime_loader.cpp
         mca/qnn/qnn_capability_probe.cpp
@@ -285,6 +301,8 @@ set_source_files_properties(
         mca/qnn/qnn_sdxl_unet_execution.cpp
         PROPERTIES COMPILE_OPTIONS "-g1")
 
+endif()  # MCA_QNN_INCLUDE_DIR -- QNN runtime layer
+
 add_library(mca_mnn_runtime STATIC
         mca/mnn/mnn_runtime_loader.cpp
         mca/mnn/mnn_backend_owner.cpp
@@ -309,9 +327,43 @@ target_include_directories(mca_mnn_runtime PUBLIC
 target_link_libraries(mca_mnn_runtime PUBLIC mca_common mca_contract mca_runtime_lifecycle)
 
 add_library(mca_mnn_native SHARED mnn_native_engine.cpp)
-add_library(mca_qnn_native SHARED qnn_native_bridge.cpp)
 target_link_libraries(mca_mnn_native PRIVATE mca_prompt_handoff mca_contract mca_common mca_observability mca_jni_boundary mca_runtime_lifecycle mca_mnn_runtime)
+# tokenizers-cpp executes the complete Hugging Face tokenizer.json contract.
+# Release builds use only the pinned third_party submodule so clean checkouts
+# and CI cannot silently select a developer-local implementation.
+if(MCA_WITH_TOKENIZERS_CPP AND EXISTS "${MCA_TOKENIZERS_CPP_ROOT}/CMakeLists.txt")
+    message(STATUS "MCA building complete tokenizer.json support from ${MCA_TOKENIZERS_CPP_ROOT}")
+    set(MLC_ENABLE_SENTENCEPIECE_TOKENIZER OFF CACHE BOOL "MCA image pipeline uses tokenizer.json" FORCE)
+    add_subdirectory("${MCA_TOKENIZERS_CPP_ROOT}" build-tokenizers-cpp EXCLUDE_FROM_ALL)
+    # Android Gradle enumerates every CMake executable even when its source
+    # subdirectory is EXCLUDE_FROM_ALL.  Older pinned SentencePiece revisions
+    # use __android_log_write in protobuf-lite but omit liblog on their CLI
+    # targets; make those incidental tools linkable without patching the
+    # third-party submodule.  MCA ships only the tokenizer library.
+    if(ANDROID)
+        foreach(SPM_TOOL_TARGET
+                spm_encode
+                spm_decode
+                spm_normalize
+                spm_train
+                spm_export_vocab)
+            if(TARGET ${SPM_TOOL_TARGET})
+                target_link_libraries(${SPM_TOOL_TARGET} log)
+            endif()
+        endforeach()
+    endif()
+    target_compile_definitions(mca_mnn_native PRIVATE MCA_WITH_TOKENIZERS_CPP=1)
+    target_link_libraries(mca_mnn_native PRIVATE tokenizers_cpp)
+else()
+    message(WARNING "tokenizers-cpp is missing; complete tokenizer.json support is unavailable.")
+    target_compile_definitions(mca_mnn_native PRIVATE MCA_WITH_TOKENIZERS_CPP=0)
+endif()
+
+if(MCA_QNN_INCLUDE_DIR)
+add_library(mca_qnn_native SHARED qnn_native_bridge.cpp)
 target_link_libraries(mca_qnn_native PRIVATE mca_prompt_handoff mca_contract mca_common mca_observability mca_jni_boundary mca_runtime_lifecycle mca_qnn_runtime)
+endif()
+
 target_sources(mca_mnn_native PRIVATE
         image_conditioning.cpp
         textual_inversion_conditioning.cpp
@@ -354,6 +406,7 @@ target_sources(mca_mnn_native PRIVATE
 #   E08d mnn_tensor_copy, E08e mnn_diffusion_assets, E08f mnn_diffusion_pipeline,
 #   E08g mnn_unet_smoke, E08h mnn_sdxl_pipeline, E08i mnn_qnn_prompt_payload,
 #   E08j mnn_session_manager (compatibility TU), E08k mnn_debug_trace.
+if(MCA_QNN_INCLUDE_DIR)
 target_sources(mca_qnn_native PRIVATE
         image_conditioning.cpp
         textual_inversion_conditioning.cpp
@@ -373,50 +426,10 @@ set_source_files_properties(
         PROPERTIES COMPILE_OPTIONS "-g1")
 target_compile_definitions(mca_qnn_native PRIVATE MCA_WITH_TOKENIZERS_CPP=0)
 
-# tokenizers-cpp executes the complete Hugging Face tokenizer.json contract.
-# Release builds use only the pinned third_party submodule so clean checkouts
-# and CI cannot silently select a developer-local implementation.
-if(MCA_WITH_TOKENIZERS_CPP AND EXISTS "${MCA_TOKENIZERS_CPP_ROOT}/CMakeLists.txt")
-    message(STATUS "MCA building complete tokenizer.json support from ${MCA_TOKENIZERS_CPP_ROOT}")
-    set(MLC_ENABLE_SENTENCEPIECE_TOKENIZER OFF CACHE BOOL "MCA image pipeline uses tokenizer.json" FORCE)
-    add_subdirectory("${MCA_TOKENIZERS_CPP_ROOT}" build-tokenizers-cpp EXCLUDE_FROM_ALL)
-    # Android Gradle enumerates every CMake executable even when its source
-    # subdirectory is EXCLUDE_FROM_ALL.  Older pinned SentencePiece revisions
-    # use __android_log_write in protobuf-lite but omit liblog on their CLI
-    # targets; make those incidental tools linkable without patching the
-    # third-party submodule.  MCA ships only the tokenizer library.
-    if(ANDROID)
-        foreach(SPM_TOOL_TARGET
-                spm_encode
-                spm_decode
-                spm_normalize
-                spm_train
-                spm_export_vocab)
-            if(TARGET ${SPM_TOOL_TARGET})
-                target_link_libraries(${SPM_TOOL_TARGET} log)
-            endif()
-        endforeach()
-    endif()
-    target_compile_definitions(mca_mnn_native PRIVATE MCA_WITH_TOKENIZERS_CPP=1)
-    target_link_libraries(mca_mnn_native PRIVATE tokenizers_cpp)
-else()
-    message(WARNING "tokenizers-cpp is missing; complete tokenizer.json support is unavailable.")
-    target_compile_definitions(mca_mnn_native PRIVATE MCA_WITH_TOKENIZERS_CPP=0)
-endif()
 target_link_libraries(mca_qnn_native PRIVATE android log dl)
 target_include_directories(mca_qnn_native PRIVATE
         "${CMAKE_CURRENT_LIST_DIR}/../../../../../third_party/stable-diffusion.cpp/thirdparty"
         "${CMAKE_CURRENT_LIST_DIR}/../../../../../third_party/llama.cpp/vendor")
-set(MCA_QNN_INCLUDE_DIR "")
-foreach(QNN_INCLUDE_CANDIDATE
-        "${MCA_QNN_SDK_ROOT}/include"
-        "$ENV{QNN_SDK_ROOT}/include"
-        "$ENV{QAIRT_SDK_ROOT}/include")
-    if(EXISTS "${QNN_INCLUDE_CANDIDATE}/QNN/QnnInterface.h")
-        set(MCA_QNN_INCLUDE_DIR "${QNN_INCLUDE_CANDIDATE}")
-        break()
-    endif()
-endforeach()
 if(MCA_QNN_INCLUDE_DIR)
     set(MCA_QNN_REQUIRED_HEADER_RELATIVE_PATHS
             "QNN/QnnInterface.h"
@@ -498,6 +511,8 @@ set_target_properties(mca_qnn_context_binary_cache_test_support PROPERTIES
         POSITION_INDEPENDENT_CODE ON
         CXX_VISIBILITY_PRESET hidden
         C_VISIBILITY_PRESET hidden)
+
+endif()  # MCA_QNN_INCLUDE_DIR -- libmca_qnn_native.so
 
 # --- Non-production translation reference disposition -----------------------
 # translation/** contained an unwired CrispASR/M2M100 reference implementation:
