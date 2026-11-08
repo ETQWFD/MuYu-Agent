@@ -102,6 +102,14 @@ std::string qnn_pipeline_probe_json(
         const std::string& runtime_dirs_json,
         const std::string& params_json,
         const std::string& output_path) {
+#if !MCA_QNN_SYSTEM_LOADER_HAS_SDK
+    // Stub build: the payload builders below drive a real QNN graph through the typed bindings,
+    // which only exist when the QAIRT/QNN SDK headers are configured. Report "unsupported"
+    // instead of compiling code that cannot link.
+    (void) bundle_root; (void) runtime_dirs_json; (void) params_json; (void) output_path;
+    return "{\"ok\":false,\"backend\":\"qnn_htp\",\"pipelineProbe\":true,\"executionStage\":\"sdk_headers_absent\",\"errorCode\":\"QNN_SDK_HEADERS_ABSENT\",\"message\":\"This build was compiled without the QNN SDK typed bindings.\"}";
+#else
+
     if (g_qnn_runtime_poisoned.load()) {
         return "{\"ok\":false,\"backend\":\"qnn_htp\",\"pipelineProbe\":true,\"executionStage\":\"runtime_resource_release_failed\",\"errorCode\":\"NATIVE_RESOURCE_RELEASE_FAILED\",\"message\":\"This disposable QNN image worker rejected reuse after a native resource release failure.\"}";
     }
@@ -307,6 +315,8 @@ std::string qnn_pipeline_probe_json(
     }
     return success_json;
 }
+#endif  // MCA_QNN_SYSTEM_LOADER_HAS_SDK
+}
 
 bool smoke_context_identity_matches(
         const SmokeSpecProbe& smoke_spec,
@@ -361,6 +371,28 @@ std::string smoke_json(
         const std::string& bundle_root,
         const std::string& runtime_dirs_json,
         const std::string& smoke_spec_json) {
+#if !MCA_QNN_SYSTEM_LOADER_HAS_SDK
+    // Stub build: the payload builders below drive a real QNN graph through the typed bindings,
+    // which only exist when the QAIRT/QNN SDK headers are configured. Report "unsupported"
+    // instead of compiling code that cannot link.
+    (void) bundle_root; (void) runtime_dirs_json; (void) smoke_spec_json; (void) kind;
+    std::ostringstream absent;
+    absent << "{"
+        << "\"kind\":" << quote(kind) << ","
+        << "\"backend\":\"qnn_htp\","
+        << "\"ok\":false,"
+        << "\"runnerReady\":false,"
+        << "\"graphMetadataReady\":false,"
+        << "\"graphRunnerReady\":false,"
+        << "\"graphExecute\":false,"
+        << "\"npuActive\":false,"
+        << "\"smokePassed\":false,"
+        << "\"executionStage\":\"sdk_headers_absent\","
+        << "\"message\":\"This build was compiled without the QNN SDK typed bindings.\""
+        << "}";
+    return absent.str();
+#else
+
     if (g_qnn_runtime_poisoned.load()) {
         std::ostringstream poisoned;
         poisoned << "{"
@@ -548,6 +580,8 @@ std::string smoke_json(
             graph_smoke.graph_executed)
         << "}";
     return out.str();
+}
+#endif  // MCA_QNN_SYSTEM_LOADER_HAS_SDK
 }
 
 }  // namespace qnn
