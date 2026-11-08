@@ -33,6 +33,13 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      - name: Prepare tokenizers-cpp Rust toolchain
+        run: |
+          set -e
+          rustup target add aarch64-linux-android armv7-linux-androideabi
+          cd third_party/tokenizers-cpp/rust
+          cargo generate-lockfile
+
       - name: Assemble APK
         run: |
           for attempt in 1 2 3; do
