@@ -97,6 +97,10 @@ public:
     const mca::qnn::preview::Contract& contract() const { return contract_; }
     const mca::qnn::preview::Audit& audit() const { return audit_; }
 
+    // The live-preview publisher drives a real QNN graph, so the whole method only exists when
+    // the typed QNN SDK headers are configured. Without them (stub build) the class keeps its
+    // audit surface and the callers below compile to their own stub path.
+#if MCA_QNN_SYSTEM_LOADER_HAS_SDK
     QnnPreviewPublishOutcome publish_if_due(
             int completed_step,
             int total_steps,
@@ -218,6 +222,7 @@ public:
         if (!previous_path.empty()) ::unlink(previous_path.c_str());
         return QnnPreviewPublishOutcome::Published;
     }
+#endif  // MCA_QNN_SYSTEM_LOADER_HAS_SDK
 
 private:
     QnnPreviewPublishOutcome fail(const std::string& code) {
