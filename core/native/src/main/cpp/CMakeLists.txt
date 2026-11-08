@@ -45,6 +45,14 @@ if(DEFINED ANDROID_ABI)
         else()
             set(GGML_OPENCL OFF CACHE BOOL "ggml: use OpenCL" FORCE)
         endif()
+    elseif(ANDROID_ABI STREQUAL "armeabi-v7a")
+        # 32-bit ARM. armv7 has no OpenMP runtime in the NDK and KleidiAI only targets
+        # AArch64 kernels, so the CPU backend is built plain NEON. Text inference still works;
+        # the arm64-only vendor delegates (QNN/MNN/Qwen) are simply not packaged for this ABI.
+        set(GGML_SYSTEM_ARCH "ARM")
+        set(GGML_CPU_KLEIDIAI OFF)
+        set(GGML_OPENMP OFF)
+        set(GGML_OPENCL OFF CACHE BOOL "ggml: use OpenCL" FORCE)
     elseif(ANDROID_ABI STREQUAL "x86_64")
         set(GGML_SYSTEM_ARCH "x86")
         set(GGML_CPU_KLEIDIAI OFF)

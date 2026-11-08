@@ -645,6 +645,20 @@ android {
                 mcaQnnSdkRootForCMake?.absolutePath?.let {
                     cmakeArgs += "-DMCA_QNN_SDK_ROOT=$it"
                 }
+                // A vendored KleidiAI checkout keeps the arm64 build independent of
+                // github.com release downloads (CI outages) without changing what is compiled.
+                rootProject.file("third_party/kleidiai").takeIf { it.isDirectory }?.let {
+                    cmakeArgs += "-DFETCHCONTENT_SOURCE_DIR_KLEIDIAI=" + it.absolutePath
+                }
+                // The OpenCL backend needs Khronos headers only. The upstream default path is
+                // inside the (untracked) MNN checkout, so point CMake at the vendored copy when
+                // MNN is absent; OpenCL llama kernels then still build for arm64.
+                val mnnOpenClHeaders =
+                    rootProject.file("third_party/MNN/3rd_party/OpenCLHeaders")
+                val vendoredOpenClHeaders = rootProject.file("third_party/OpenCLHeaders")
+                if (!mnnOpenClHeaders.isDirectory && vendoredOpenClHeaders.isDirectory) {
+                    cmakeArgs += "-DMCA_OPENCL_HEADERS_ROOT=" + vendoredOpenClHeaders.absolutePath
+                }
                 arguments += cmakeArgs
             }
         }

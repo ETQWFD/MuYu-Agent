@@ -261,7 +261,7 @@ android {
 
         externalNativeBuild {
             cmake {
-                arguments += listOf(
+                val sdCmakeArgs = mutableListOf(
                     "-DCMAKE_BUILD_TYPE=Release",
                     "-DCMAKE_MESSAGE_LOG_LEVEL=STATUS",
                     "-DSD_BUILD_EXAMPLES=OFF",
@@ -275,6 +275,12 @@ android {
                     "-DGGML_BACKEND_DL=OFF",
                     "-DGGML_LLAMAFILE=OFF"
                 )
+                // Same vendored KleidiAI checkout as :core:native so arm64 does not depend on
+                // a github.com release download at configure time.
+                rootProject.file("third_party/kleidiai").takeIf { it.isDirectory }?.let {
+                    sdCmakeArgs += "-DFETCHCONTENT_SOURCE_DIR_KLEIDIAI=" + it.absolutePath
+                }
+                arguments += sdCmakeArgs
             }
         }
     }
