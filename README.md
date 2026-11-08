@@ -1,11 +1,11 @@
-# MCA - MuYu Chat Agent
+# MuYu-Agent（MCA）
 
 Android local-first AI workspace: mobile-first local inference engines,
 user-configured cloud APIs, model management, and image-generation engines under
 user control.
 
-[![Android CI](https://github.com/lyydfys/MCA/actions/workflows/android-ci.yml/badge.svg)](https://github.com/lyydfys/MCA/actions/workflows/android-ci.yml)
-[![Release](https://img.shields.io/github/v/release/lyydfys/MuYu-Chat-Agent?include_prereleases&label=release)](https://github.com/lyydfys/MuYu-Chat-Agent/releases)
+[![Android CI](https://github.com/ETQWFD/MuYu-Agent/actions/workflows/android-ci.yml/badge.svg)](https://github.com/ETQWFD/MuYu-Agent/actions/workflows/android-ci.yml)
+[![Release](https://img.shields.io/github/v/release/ETQWFD/MuYu-Agent?include_prereleases&label=release)](https://github.com/ETQWFD/MuYu-Agent/releases)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 MCA is an Android-native, local-first AI workspace for people who want direct
@@ -74,7 +74,7 @@ Current release status:
   and the pinned in-repo Wan engine archive. It remains under the MIT License.
   See the [v0.3.0 release notes](docs/releases/v0.3.0.md).
 - `v0.2.4` (`versionCode 8`) is the previous stability release and remains on
-  [GitHub Releases](https://github.com/lyydfys/MuYu-Chat-Agent/releases/tag/v0.2.4).
+  [GitHub Releases](https://github.com/ETQWFD/MuYu-Agent/releases/tag/v0.2.4).
 - The first public package target is `arm64-v8a` Android devices.
 - Local chat is the primary stable local path.
 - Agent and DSH workspaces are advanced surfaces with their own runtime
@@ -193,7 +193,7 @@ Current release status:
 ## Install
 
 Download the latest alpha APK from
-[GitHub Releases](https://github.com/lyydfys/MuYu-Chat-Agent/releases). Android may ask you
+[GitHub Releases](https://github.com/ETQWFD/MuYu-Agent/releases). Android may ask you
 to allow installation from your browser or file manager.
 
 The APK does not include model weights or cloud credentials. After installing:
@@ -272,13 +272,13 @@ $env:MCA_LIVE_CUSTOM_JSON_ENDPOINT='https://hn.algolia.com/api/v1/search'
   </tr>
 </table>
 
-也可以查看 [赞助说明](docs/DONATE.md)，或在 [GitHub](https://github.com/lyydfys/MuYu-Chat-Agent) 点一个 Star 支持项目。
+也可以查看 [赞助说明](docs/DONATE.md)，或在 [GitHub](https://github.com/ETQWFD/MuYu-Agent) 点一个 Star 支持项目。
 
 应用内「设置 → 关于 → 赞助支持」也提供同一组离线赞赏码；国内网络无法打开 GitHub 时可直接扫码。
 
 国内访问：应用内更新检查与 APK/校验文件下载使用 `gh-proxy.com` 加速，失败时自动回退 GitHub 官方地址。该镜像不渲染仓库网页，赞助页和 Star 仍打开 GitHub 官方页面；国内网络下也可直接使用应用内离线赞赏码。「设置 → 关于 → 怎么点 Star？」提供三步引导。
 
-[![GitHub stars](https://img.shields.io/github/stars/lyydfys/MuYu-Chat-Agent?style=social)](https://github.com/lyydfys/MuYu-Chat-Agent)
+[![GitHub stars](https://img.shields.io/github/stars/lyydfys/MuYu-Chat-Agent?style=social)](https://github.com/ETQWFD/MuYu-Agent)
 
 ## Repository Layout
 

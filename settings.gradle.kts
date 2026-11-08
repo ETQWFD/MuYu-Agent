@@ -37,7 +37,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MuYuChatAgent"
+rootProject.name = "MuYu-Agent"
 
 include(":app")
 include(":core:native")

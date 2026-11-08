@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -46,15 +47,21 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.muyuchat.core.deviceprofile.AbiSupport
 import com.muyuchat.core.designsystem.McaButton
 import com.muyuchat.core.designsystem.McaButtonStyle
 import com.muyuchat.core.designsystem.McaDialog
 import com.muyuchat.core.designsystem.McaIconButton
 import com.muyuchat.core.designsystem.McaIcons
 
-private const val ABOUT_AUTHOR = "lyydfys"
-private const val ABOUT_REPOSITORY = "lyydfys/MuYu-Chat-Agent"
-private const val ABOUT_AUTHOR_URL = "https://github.com/$ABOUT_AUTHOR"
+// MuYu-Agent (ET distribution). The upstream project author stays credited below the
+// current maintainer so the Apache-2.0 attribution chain remains visible in-app.
+private const val ABOUT_AUTHOR = "ET"
+private const val ABOUT_AUTHOR_HANDLE = "ETQWFD"
+private const val ABOUT_UPSTREAM_AUTHOR = "lyydfys"
+private const val ABOUT_REPOSITORY = "ETQWFD/MuYu-Agent"
+private const val ABOUT_AUTHOR_URL = "https://github.com/$ABOUT_AUTHOR_HANDLE"
+private const val ABOUT_UPSTREAM_AUTHOR_URL = "https://github.com/$ABOUT_UPSTREAM_AUTHOR"
 private const val ABOUT_REPOSITORY_URL = "https://github.com/$ABOUT_REPOSITORY"
 private const val ABOUT_ISSUES_URL = "$ABOUT_REPOSITORY_URL/issues"
 private const val ABOUT_DONATE_URL = "$ABOUT_REPOSITORY_URL/blob/master/docs/DONATE.md"
@@ -191,16 +198,35 @@ internal fun SettingsAboutScreen(
             AboutLinkCard(
                 icon = McaIcons.Person,
                 title = "主作者",
-                subtitle = ABOUT_AUTHOR,
+                subtitle = "$ABOUT_AUTHOR · $ABOUT_AUTHOR_HANDLE",
                 modifier = Modifier.weight(1f),
                 onClick = { onOpenWebPage(ABOUT_AUTHOR_URL) }
             )
+            AboutLinkCard(
+                icon = McaIcons.Person,
+                title = "原作者",
+                subtitle = ABOUT_UPSTREAM_AUTHOR,
+                modifier = Modifier.weight(1f),
+                onClick = { onOpenWebPage(ABOUT_UPSTREAM_AUTHOR_URL) }
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             AboutLinkCard(
                 icon = McaIcons.Code,
                 title = "开源仓库",
                 subtitle = ABOUT_REPOSITORY,
                 modifier = Modifier.weight(1f),
                 onClick = { onOpenWebPage(ABOUT_REPOSITORY_URL) }
+            )
+            AboutLinkCard(
+                icon = McaIcons.Feedback,
+                title = "意见反馈",
+                subtitle = "报告问题或提交建议",
+                modifier = Modifier.weight(1f),
+                onClick = { onOpenWebPage(ABOUT_ISSUES_URL) }
             )
         }
         Row(
@@ -213,13 +239,6 @@ internal fun SettingsAboutScreen(
                 subtitle = "支持项目持续开发",
                 modifier = Modifier.weight(1f),
                 onClick = { showSponsor = true }
-            )
-            AboutLinkCard(
-                icon = McaIcons.Feedback,
-                title = "意见反馈",
-                subtitle = "报告问题或提交建议",
-                modifier = Modifier.weight(1f),
-                onClick = { onOpenWebPage(ABOUT_ISSUES_URL) }
             )
         }
 
@@ -300,17 +319,28 @@ private fun AboutHero(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Image(
+                painter = painterResource(R.drawable.author_avatar),
+                contentDescription = "作者头像",
+                modifier = Modifier
+                    .size(76.dp)
+                    .clip(CircleShape)
+            )
+            Image(
                 painter = painterResource(R.drawable.about_logo),
                 contentDescription = null,
-                modifier = Modifier.size(64.dp)
+                modifier = Modifier.size(40.dp)
             )
             Text(
-                "MCA",
+                "MuYu-Agent",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                "MuYu Chat Agent · 本地优先 · 模型与算力由你掌控",
+                if (AbiSupport.supportsVendorNpu) {
+                    "MuYu-Agent · 本地优先 · 模型与算力由你掌控"
+                } else {
+                    "MuYu-Agent · 32 位兼容模式：云端可用，厂商 NPU 本地推理不可用（" + AbiSupport.label + "）"
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

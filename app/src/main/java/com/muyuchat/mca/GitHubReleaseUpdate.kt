@@ -25,10 +25,10 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 internal const val GITHUB_RELEASE_API_URL =
-    "https://api.github.com/repos/lyydfys/MuYu-Chat-Agent/releases/latest"
+    "https://api.github.com/repos/ETQWFD/MuYu-Agent/releases/latest"
 internal const val GITHUB_RELEASE_PAGE_URL =
-    "https://github.com/lyydfys/MuYu-Chat-Agent/releases/latest"
-internal const val GITHUB_RELEASE_REPOSITORY = "lyydfys/MuYu-Chat-Agent"
+    "https://github.com/ETQWFD/MuYu-Agent/releases/latest"
+internal const val GITHUB_RELEASE_REPOSITORY = "ETQWFD/MuYu-Agent"
 internal const val GITHUB_DOMESTIC_PROXY = "https://gh-proxy.com/"
 internal const val GITHUB_RELEASE_API_DOMESTIC_URL = GITHUB_DOMESTIC_PROXY + GITHUB_RELEASE_API_URL
 private const val GITHUB_REPOSITORY_WEB_PREFIX = "https://github.com/$GITHUB_RELEASE_REPOSITORY"

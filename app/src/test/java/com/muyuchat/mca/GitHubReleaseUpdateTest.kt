@@ -66,7 +66,7 @@ class GitHubReleaseUpdateTest {
             {
               "tag_name": "v0.3.0",
               "name": "MCA 0.3.0",
-              "html_url": "https://github.com/lyydfys/MuYu-Chat-Agent/releases/tag/v0.3.0",
+              "html_url": "https://github.com/ETQWFD/MuYu-Agent/releases/tag/v0.3.0",
               "body": "Bug fixes",
               "published_at": "2026-08-21T00:00:00Z",
               "draft": false,
@@ -74,7 +74,7 @@ class GitHubReleaseUpdateTest {
               "assets": [
                 {
                   "name": "mca-arm64-v8a.apk",
-                  "browser_download_url": "https://github.com/lyydfys/MuYu-Chat-Agent/releases/download/v0.3.0/mca-arm64-v8a.apk",
+                  "browser_download_url": "https://github.com/ETQWFD/MuYu-Agent/releases/download/v0.3.0/mca-arm64-v8a.apk",
                   "size": 1234,
                   "digest": "sha256:$digest"
                 },
@@ -94,12 +94,12 @@ class GitHubReleaseUpdateTest {
         assertEquals("MCA 0.3.0", release.name)
         assertEquals("Bug fixes", release.body)
         assertEquals(
-            "https://github.com/lyydfys/MuYu-Chat-Agent/releases/tag/v0.3.0",
+            "https://github.com/ETQWFD/MuYu-Agent/releases/tag/v0.3.0",
             release.htmlUrl
         )
         assertEquals(
             GITHUB_DOMESTIC_PROXY +
-                "https://github.com/lyydfys/MuYu-Chat-Agent/releases/download/v0.3.0/mca-arm64-v8a.apk",
+                "https://github.com/ETQWFD/MuYu-Agent/releases/download/v0.3.0/mca-arm64-v8a.apk",
             release.assets[0].downloadUrl
         )
         assertEquals("https://objects.githubusercontent.com/assets/checksum", release.assets[1].downloadUrl)
@@ -216,7 +216,7 @@ class GitHubReleaseUpdateTest {
         assertTrue(isTrustedGitHubDownloadUrl("https://github-releases.githubusercontent.com/a"))
         assertTrue(
             isTrustedGitHubDownloadUrl(
-                "https://gh-proxy.com/https://github.com/lyydfys/MuYu-Chat-Agent/releases/download/v0.3.0/app.apk"
+                "https://gh-proxy.com/https://github.com/ETQWFD/MuYu-Agent/releases/download/v0.3.0/app.apk"
             )
         )
         assertFalse(isTrustedGitHubDownloadUrl("https://gh-proxy.com/https://example.com/app.apk"))
@@ -235,7 +235,7 @@ class GitHubReleaseUpdateTest {
     @Test
     fun domesticGithubUrlsOnlyRewriteThisRepositoryAndNeverDoublePrefix() {
         val releasePage =
-            "https://github.com/lyydfys/MuYu-Chat-Agent/releases/tag/v0.3.0"
+            "https://github.com/ETQWFD/MuYu-Agent/releases/tag/v0.3.0"
         assertEquals(GITHUB_DOMESTIC_PROXY + releasePage, domesticGitHubUrl(releasePage))
         assertEquals(
             GITHUB_DOMESTIC_PROXY + releasePage,
@@ -387,7 +387,7 @@ class GitHubReleaseUpdateTest {
 
     private fun asset(
         name: String,
-        url: String = "https://github.com/lyydfys/MuYu-Chat-Agent/releases/download/v0.3.0/$name",
+        url: String = "https://github.com/ETQWFD/MuYu-Agent/releases/download/v0.3.0/$name",
         digest: String? = null,
         size: Long = 1L
     ) = GitHubReleaseAsset(

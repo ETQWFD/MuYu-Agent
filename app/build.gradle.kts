@@ -36,7 +36,7 @@ val keepNativeDebugSymbols = providers.gradleProperty("mca.keepNativeSymbols")
     .equals("true", ignoreCase = true)
 
 val mcaAbiFilters = providers.gradleProperty("mca.abis")
-    .orElse("arm64-v8a,x86_64")
+    .orElse("arm64-v8a,armeabi-v7a,x86_64")
     .get()
     .split(",")
     .map { it.trim() }
@@ -210,8 +210,8 @@ android {
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 10
-        versionName = "0.3.1"
+        versionCode = 12
+        versionName = "0.4.0"
 
         ndk {
             abiFilters += mcaAbiFilters
@@ -413,10 +413,16 @@ composeCompiler {
 tasks.configureEach {
     if (name == "preDebugBuild") {
         doFirst {
-            val expectedDebugAbis = setOf("arm64-v8a", "x86_64")
-            check(mcaAbiFilters.toSet() == expectedDebugAbis) {
-                "Debug APKs must include both arm64-v8a and x86_64. " +
-                    "Use -Pmca.abis=arm64-v8a,x86_64; arm64-only is reserved for the release profile."
+            // 32-bit devices (armeabi-v7a) are a supported install target: the app detects a
+            // 32-bit-only process at runtime and disables the arm64-only vendor runtimes instead
+            // of letting a missing library abort the process.
+            val supportedDebugAbis = setOf("arm64-v8a", "armeabi-v7a", "x86_64")
+            check(mcaAbiFilters.contains("arm64-v8a")) {
+                "Debug APKs must include arm64-v8a. Use -Pmca.abis=arm64-v8a,armeabi-v7a,x86_64."
+            }
+            check(supportedDebugAbis.containsAll(mcaAbiFilters.toSet())) {
+                "Unsupported debug ABI filter: " +
+                    mcaAbiFilters.filterNot { it in supportedDebugAbis }.joinToString()
             }
         }
     }

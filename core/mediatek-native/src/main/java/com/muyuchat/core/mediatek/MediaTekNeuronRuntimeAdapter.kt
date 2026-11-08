@@ -32,9 +32,20 @@ internal interface MediaTekNeuronNativeBridge {
 }
 
 internal object MediaTekNeuronJniBridge : MediaTekNeuronNativeBridge {
-    init {
+    // The Neuron delegate is an arm64-only vendor binary. A 32-bit install (or a build without
+    // the delegate staged) must fail as a typed "unavailable" instead of an
+    // ExceptionInInitializerError that closes the whole app.
+    private val loadError: Throwable? = runCatching {
         System.loadLibrary("mca_mediatek_neuron")
-    }
+    }.exceptionOrNull()
+
+    val isAvailable: Boolean
+        get() = loadError == null
+
+    val unavailableReason: String?
+        get() = loadError?.let { error ->
+            "libmca_mediatek_neuron.so 未加载：" + (error.message ?: error.javaClass.simpleName)
+        }
 
     external override fun nativeProbe(): String
 
