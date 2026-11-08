@@ -227,17 +227,11 @@ extern "C" cl_mem clCreateBuffer(cl_context c, cl_mem_flags f, size_t s, void * 
     return fn(c, f, s, h, e);
 }
 
-// clCreateBufferWithProperties is an OpenCL 3.0 entry point, while the
-// Android header set used by the normal MCA build targets OpenCL 2.2. Keep the
-// ABI-compatible trampoline available for a future 3.0 ggml build without
-// making the 2.2 headers (or CPU fallback) depend on the symbol.
-extern "C" cl_mem clCreateBufferWithProperties(cl_context c, const intptr_t * props,
-                                                 cl_mem_flags f, size_t s, void * h, cl_int * e) {
-    using Fn = cl_mem (*)(cl_context, const intptr_t *, cl_mem_flags, size_t, void *, cl_int *);
-    static Fn fn = opencl_symbol<Fn>("clCreateBufferWithProperties");
-    if (fn == nullptr) { if (e) *e = CL_INVALID_OPERATION; return nullptr; }
-    return fn(c, props, f, s, h, e);
-}
+// clCreateBufferWithProperties / clCreateImageWithProperties are OpenCL 3.0 entry points.
+// This build pins the ggml OpenCL target at 2.2 on the 2.2 header set (see
+// GGML_OPENCL_TARGET_VERSION in CMakeLists.txt), so the 3.0 trampolines that used to live here
+// are not part of the shipped surface and are dropped rather than re-declared against the
+// installed CL headers.
 
 extern "C" cl_mem clCreateSubBuffer(cl_mem b, cl_mem_flags f, cl_buffer_create_type t, const void * i, cl_int * e) {
     using Fn = cl_mem (*)(cl_mem, cl_mem_flags, cl_buffer_create_type, const void *, cl_int *);
