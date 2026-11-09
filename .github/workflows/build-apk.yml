@@ -34,7 +34,9 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Patch ggml for the 32-bit ARM toolchain
-        run: python3 scripts/ci-patch-ggml-arm32.py third_party/llama.cpp/ggml/src/ggml-cpu/ggml-cpu-impl.h
+        run: |
+          python3 scripts/ci-patch-ggml-arm32.py third_party/llama.cpp/ggml/src/ggml-cpu/ggml-cpu-impl.h
+          python3 scripts/ci-patch-ggml-arm32-quants.py third_party/llama.cpp/ggml/src/ggml-cpu/arch/arm/quants.c
 
       - name: Prepare tokenizers-cpp Rust toolchain
         run: |
