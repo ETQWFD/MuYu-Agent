@@ -18,6 +18,13 @@ inline static uint8x16_t vzip2q_u8(uint8x16_t a, uint8x16_t b) {
     return vzipq_u8(a, b).val[1];
 }
 
+inline static uint8x16_t vqtbl2q_u8(uint8x16x2_t table, uint8x16_t index) {
+    const uint8x8x4_t quarters = {{ vget_low_u8(table.val[0]), vget_high_u8(table.val[0]),
+                                    vget_low_u8(table.val[1]), vget_high_u8(table.val[1]) }};
+    return vcombine_u8(vtbl4_u8(quarters, vget_low_u8(index)),
+                       vtbl4_u8(quarters, vget_high_u8(index)));
+}
+
 inline static uint8x16_t vqtbl1q_u8(uint8x16_t table, uint8x16_t index) {
     const uint8x8x2_t halves = {{ vget_low_u8(table), vget_high_u8(table) }};
     return vcombine_u8(vtbl2_u8(halves, vget_low_u8(index)),
