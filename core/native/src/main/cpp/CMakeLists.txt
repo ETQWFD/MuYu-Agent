@@ -65,6 +65,11 @@ if(DEFINED ANDROID_ABI)
         # AArch64 kernels, so the CPU backend is built plain NEON. Text inference still works;
         # the arm64-only vendor delegates (QNN/MNN/Qwen) are simply not packaged for this ABI.
         set(GGML_SYSTEM_ARCH "ARM")
+        # ggml's ARM quants kernels call vzip1q_u8/vzip2q_u8/vqtbl1q_u8, which only exist on
+        # AArch64. Force-include the AArch32 wrappers for every TU in this module (llama.cpp is
+        # added as a subdirectory below and inherits these flags).
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -include ${CMAKE_CURRENT_LIST_DIR}/mca/arm32/mca_arm32_neon_shims.h")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -include ${CMAKE_CURRENT_LIST_DIR}/mca/arm32/mca_arm32_neon_shims.h")
         set(GGML_CPU_KLEIDIAI OFF)
         set(GGML_OPENMP OFF)
         set(GGML_OPENCL OFF CACHE BOOL "ggml: use OpenCL" FORCE)

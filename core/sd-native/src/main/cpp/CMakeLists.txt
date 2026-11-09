@@ -18,6 +18,8 @@ if(DEFINED ANDROID_ABI)
     elseif(ANDROID_ABI STREQUAL "armeabi-v7a")
         # 32-bit ARM: NEON only, no KleidiAI/OpenMP/Vulkan (see core/native for the same split).
         set(GGML_SYSTEM_ARCH "ARM" CACHE STRING "" FORCE)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -include ${CMAKE_CURRENT_LIST_DIR}/../../../native/src/main/cpp/mca/arm32/mca_arm32_neon_shims.h")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -include ${CMAKE_CURRENT_LIST_DIR}/../../../native/src/main/cpp/mca/arm32/mca_arm32_neon_shims.h")
         set(GGML_CPU_KLEIDIAI OFF CACHE BOOL "" FORCE)
         set(GGML_OPENMP OFF CACHE BOOL "" FORCE)
         set(SD_VULKAN OFF CACHE BOOL "" FORCE)
