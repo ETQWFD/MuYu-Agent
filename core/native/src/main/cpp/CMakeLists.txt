@@ -70,6 +70,10 @@ if(DEFINED ANDROID_ABI)
         # added as a subdirectory below and inherits these flags).
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -include ${CMAKE_CURRENT_LIST_DIR}/mca/arm32/mca_arm32_neon_shims.h")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -include ${CMAKE_CURRENT_LIST_DIR}/mca/arm32/mca_arm32_neon_shims.h")
+        # GGML_CPU_ALL_VARIANTS emits the Android armv8.x variant set, which compiles with
+        # -march=armv8.6-a+... and cannot target armeabi-v7a. The 32-bit build ships the plain
+        # NEON CPU backend instead, so force the flag off for this ABI only.
+        set(GGML_CPU_ALL_VARIANTS OFF CACHE BOOL "" FORCE)
         set(GGML_CPU_KLEIDIAI OFF)
         set(GGML_OPENMP OFF)
         set(GGML_OPENCL OFF CACHE BOOL "ggml: use OpenCL" FORCE)
