@@ -35,7 +35,8 @@ jobs:
 
       - name: Patch ggml for the 32-bit ARM toolchain
         run: |
-          python3 scripts/ci-patch-ggml-arm32.py third_party/llama.cpp/ggml/src/ggml-cpu/ggml-cpu-impl.h
+          # ggml's own AArch32 fallbacks in ggml-cpu-impl.h stay untouched: with the armv8
+          # variant set disabled they no longer collide, and arch/arm/repack.cpp needs them.
           python3 scripts/ci-patch-ggml-arm32-quants.py third_party/llama.cpp/ggml/src/ggml-cpu/arch/arm/quants.c
 
       - name: Prepare tokenizers-cpp Rust toolchain
